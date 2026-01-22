@@ -45,11 +45,13 @@ pipeline {
     }
     stage('Deploy') {
       steps {
-        // ติดตั้ง Vercel CLI แบบ local
-        sh 'npm install vercel -g'
-        // สั่ง Deploy ไปยัง Vercel 
-        // ใช้ --prebuilt เพื่อระบุว่าไฟล์ในโฟลเดอร์ build/ ได้ถูกสร้างไว้แล้ว
-        sh './node_modules/.bin/vercel deploy --prod --prebuilt'
+        container('my-builder') {
+          // ตั้งค่า Vercel CLI
+          sh '''
+            vercel login --token $VERCEL_TOKEN
+            vercel link $VERCEL_PROJECT_NAME --token $VERCEL_TOKEN
+          '''
+        }
       }
     }
 
