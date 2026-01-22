@@ -1,28 +1,39 @@
 pipeline {
-    agent any
+    kubernetes {
+      // This YAML defines the "Docker Container" you want to use
+      yaml '''
+        apiVersion: v1
+        kind: Pod
+        spec:
+          containers:
+          - name: my-builder  # We will refer to this name later
+            image: node:18-alpine
+            command:
+            - cat
+            tty: true
+      '''
+    }
     stages {
         stage('Test npm') {
-            agent {
-                docker {
-                    image 'node:16-alpine' // ใช้ Image นี้ที่มี Node.js มาให้แล้ว
-                    reuseNode true 
-                }
-            }
             steps {
-                sh 'npm --version'
-                sh 'node --version'
+                container('my-builder') {
+                    sh 'npm --version'
+                    sh 'node --version'
+                }
             }
         }
         stage('Build') {
-            agent {
-                docker {
-                    image 'node:16-alpine' // ใช้ Image นี้ที่มี Node.js มาให้แล้ว
-                    reuseNode true 
-                }
-            }
             steps {
+                container('my-builder') {
                 sh 'npm ci'
                 sh 'npm run build'
+            }
+        }
+        stage('Test Build') {
+            steps {
+                container('my-builder') {
+                    sh 'npm run test'
+                }
             }
         }
     }
