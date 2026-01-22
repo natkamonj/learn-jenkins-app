@@ -46,6 +46,7 @@ pipeline {
     stage('Deploy') {
       steps {
         container('my-builder') {
+          sh 'npm install -g vercel@latest'
           // ตั้งค่า Vercel CLI
           sh '''
             vercel login --token $VERCEL_TOKEN
